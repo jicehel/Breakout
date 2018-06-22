@@ -4,27 +4,17 @@
 //----------------------------------------------------------------------    
 
 #include <Gamebuino-Meta.h>
+#include "declarations.h"
 
-#define COLUMNS        10   // Columns of bricks
-#define ROWS           6    // Rows of bricks
-#define paddlewidth    16
-#define paddleheight   2
-#define paddlespeed    2
-#define YPaddle        62
-#define BallSize       2
-#define Ytop           12
-#define BrickWidth     8
-#define BrickHeight    4
-#define NbPointsBrick  10
-
-int8_t state = 0;          // State the game is in
+int8_t gamestatus = Titlescreen;          // gamestatus the game for tilescreen
 float moveX;               // Horizontal movement of ball
 float moveY;               // Vertical movement of ball
 float ballX;               // Ball horizontal position
 float ballY;               // Ball vertical position
 boolean Free;              // True if the ball is free of the paddle
-int8_t xPaddle;            // Horizontal position of paddle
-boolean isHit[ROWS][COLUMNS];//Array of states of the bricks (hit or not)
+int8_t xPaddle;            // Horizontal position of the paddle
+int8_t YPaddle;            // Vertical position of the paddle
+boolean isHit[ROWS][COLUMNS];//Array of gamestatuss of the bricks (hit or not)
 boolean bounced = false;   // Used to fix double bounce glitch
 int8_t lives;              // Amount of lives
 int8_t level;              // Current level
@@ -33,8 +23,13 @@ int16_t brickCount;        // Amount of bricks hit
 int8_t WIDTH;
 int8_t HEIGHT;
 int8_t midPaddle;
+uint8_t red;
+uint8_t green;
+uint8_t blue;
 
-
+const Gamebuino_Meta::Sound_FX LoseLife[] = {
+  {Gamebuino_Meta::Sound_FX_Wave::NOISE,0,184,0,-19,96,11},
+};
 
 void Paddle() {
   SerialUSB.println("Do Paddle");
@@ -43,119 +38,8 @@ void Paddle() {
   if (xPaddle < 1) xPaddle = 0;
   if (xPaddle > WIDTH - paddlewidth) xPaddle = WIDTH - paddlewidth;
   gb.display.setColor(GRAY);
-  gb.display.drawRect(xPaddle, YPaddle, paddlewidth, 1);
-}
-
-
-void Ball() {
-  SerialUSB.println("Do Ball");
-  if (Free) {
-    //Move ball
-    ballX = ballX + moveX;
-    ballY = ballY + moveY;
-    //Bounce off top edge
-    if (ballY <= Ytop) {
-      ballY = Ytop;
-      moveY = -moveY;
-      gb.sound.tone(523, 200);
-    }
-    //Lose a life if bottom edge hit
-    if (ballY >= HEIGHT) {
-      gb.sound.tone(175, 200);
-      delay(250);
-      ballY = YPaddle - BallSize;
-      Free = false;
-      lives = lives - 1;
-    }
-    //Bounce off left side
-    if (ballX < 1) {
-      ballX = 1;
-      moveX = -moveX;
-      gb.sound.tone(523, 200);
-    }
-    //Bounce off right side
-    if (ballX > WIDTH - BallSize) {
-      ballX = WIDTH - BallSize;
-      moveX = -moveX;
-      gb.sound.tone(523, 200);
-    }
-    //Bounce off paddle
-    if (((ballX + BallSize) >= xPaddle) && (ballX <= xPaddle) + paddlewidth && ((ballY + BallSize) >= YPaddle) && (ballY <= YPaddle)) {
-      moveY = -moveY;
-      moveX = moveX  - (xPaddle + midPaddle - ballX) / 4; //Applies spin on the ball
-      //limit horizontal speed
-      if (moveX < -1.5) moveX = -1.5;
-      if (moveX > 1.5)  moveX =  1.5;
-      gb.sound.tone(200, 200);
-    }
-    //Reset Bounce
-    bounced = false;
-  } else {
-    //Ball follows paddle
-    ballX = xPaddle + midPaddle ;
-    ballY = YPaddle - BallSize;
-    //Release ball if FIRE pressed
-    if (gb.buttons.pressed(BUTTON_A)) {
-      Free = true;
-      if (gb.buttons.pressed(BUTTON_LEFT) || gb.buttons.pressed(BUTTON_RIGHT)) {
-        if (gb.buttons.pressed(BUTTON_LEFT)) moveX = 0.5;
-        else moveX = -0.5;
-      } else moveX = random(-1, 1) / 2;
-      moveY = -1;
-    }
-  }
-  gb.display.setColor(YELLOW);
-  gb.display.drawRect(ballX, floor(ballY), BallSize, BallSize);
-}
-
-
-void Brick() {
-  //Bounce off Bricks
-  SerialUSB.println("Do Brick");
-  for (int8_t row = 0; row < ROWS; row++) {
-    for (int8_t column = 0; column < COLUMNS; column++) {
-      if (!isHit[row][column]) {
-        // Manage brick and ball collision
-        gb.display.setColor(column + 1 + row);
-        gb.display.fillRect(BrickWidth * column, BrickHeight * row + Ytop, BrickWidth, BrickHeight);
-        //If A collison has occuRED
-        if (ballY <= (BrickHeight * (row + 1) + Ytop) && ballY >= (BrickHeight * row - BallSize + Ytop) &&
-            ballX <= (BrickWidth * (column + 1)) && ballX >= (BrickWidth * column - BallSize)) {
-          score = score + NbPointsBrick;
-          brickCount++;
-          isHit[row][column] = true;
-          // Manage if the ball have to change of vertical direction to avoid crazy moves
-          if (ballY <= (BrickHeight * (row + 1) + Ytop) && ballY >= (BrickHeight * row - BallSize + Ytop) &&
-            ballX <= (BrickWidth * (column + 1)) && ballX >= (BrickWidth * column - BallSize)) {
-            //Only bounce once each ball move
-            if (!bounced) {
-              moveX = - moveX;
-              moveY = - moveY;
-              bounced = true;
-              gb.sound.tone(261, 200);
-            }
-          }  
-          else if (ballY <= (BrickHeight * (row + 1) + Ytop) && (ballY >= (BrickHeight * row - BallSize + Ytop))) {
-            //Only bounce once each ball move
-            if (!bounced) {
-              moveY = - moveY;
-              bounced = true;
-              gb.sound.tone(261, 200);
-            }
-          }
-          //Hoizontal collision
-          else if (ballX < (BrickWidth * (column + 1)) && (ballX >= (BrickWidth * column - BallSize))) {
-            //Only bounce once brick each ball move
-            if (!bounced) {
-              moveX = - moveX;
-              bounced = true;
-              gb.sound.tone(261, 200);
-            }
-          }
-        }
-      }
-    }
-  }
+  // gb.display.drawRect(xPaddle, YPaddle, paddlewidth, YPaddle + paddleheight -1);
+  gb.display.drawImage(xPaddle, YPaddle, PaddlePicture);
 }
 
 
@@ -171,44 +55,47 @@ void resetlevel() {
 }
 
 
-void resetGame() {
-  SerialUSB.println("Do resetGame");
-  resetlevel();
+void newgame() {
+  SerialUSB.println("Do newgame"); 
   level = 1;
   lives = 3;
   score = 0;
-  state = 1;
+  resetlevel();
+  gamestatus = Running;
 }
 
 
-void Statistics() {
-  SerialUSB.println("Do Statistics");
+void ShowInfos() {
+  SerialUSB.println("Do ShowInfos");
   gb.display.setCursor(1, 1);
   gb.display.setColor(WHITE);
   gb.display.print("Lev:");
   gb.display.setColor(YELLOW);
   gb.display.print(level);
-  gb.display.setCursor(28, 1);
+  gb.display.setCursor(25, 1);
   gb.display.setColor(WHITE);
   gb.display.print("Liv:");
   gb.display.setColor(YELLOW);
   gb.display.print(lives);
-  gb.display.setCursor(55, 1);
+  gb.display.setCursor(48, 1);
   gb.display.setColor(WHITE);
   gb.display.print("S:");
   gb.display.setColor(YELLOW);
   gb.display.print(score);
-  if ((brickCount == ROWS * COLUMNS) && level < 2) {
+  if (brickCount == ROWS * COLUMNS)  {
     resetlevel();
     level = level + 1;
+  }
+  if (lives <= 0) {
+    delay(500);
+    gamestatus = Gameover;
   }
 }
 
 
-
 void setup() {
   gb.begin();
-  gb.setFrameRate(30);
+  gb.setFrameRate(40);
   gb.pickRandomSeed();
   SerialUSB.println("Do setup");
   gb.sound.tone(987, 160);
@@ -216,48 +103,36 @@ void setup() {
   gb.sound.tone(1318, 400);
   WIDTH = gb.display.width();
   HEIGHT = gb.display.height();
+  YPaddle = 62;
   midPaddle = ((paddlewidth - (BallSize/2))/2);
+  initHighscore();
 }
 
 
 void loop() {
   if (!gb.update()) return;
   gb.display.clear();
-  SerialUSB.print(state);
-  switch (state) {
-    case 0: 
-        gb.display.setCursor(8, 12);
-        gb.display.setFontSize(2);
-        gb.display.setColor(YELLOW);
-        gb.display.print("BREAKOUT");
-        gb.display.setFontSize(1);
-        gb.display.setCursor(8, 46);
-        gb.display.setColor(WHITE);
-        gb.display.print("PRESS <A> or <B>");
-        if (gb.buttons.pressed(BUTTON_A) || gb.buttons.pressed(BUTTON_B)) {
-          state = 1;
-          xPaddle = 50;
-        }
+  SerialUSB.print(gamestatus);
+  switch (gamestatus) {
+    case 0: // Titlescreen
+        gb.display.drawImage(0, 0, StartScreen);
+        if (gb.buttons.pressed(BUTTON_A) || gb.buttons.pressed(BUTTON_B)) newgame();
         break;
 
-    case 1: 
-        if (lives > 0) {
+    case 1: // Running
           Paddle();
           Ball();
           Brick();
-          Statistics();
-        } else {
-          delay(3000);
-          resetlevel();
-          state = 2;
-        }
-        if (gb.buttons.pressed(BUTTON_MENU) ) {
-          state = 4;
-        }
+          ShowInfos();
+          if (gb.buttons.pressed(BUTTON_MENU) )  gamestatus = Pause;
+          break;
+
+    case 2: // Gameover
+        saveHighscore(score);
         break;
 
-    case 2:
-        resetGame();
+    case 3: // Restart    
+        gamestatus = Titlescreen;
         break;
 
     case 4: 
@@ -265,12 +140,7 @@ void loop() {
         gb.display.setFontSize(2);
         gb.display.setColor(RED);
         gb.display.print("PAUSE");
-        if (gb.buttons.pressed(BUTTON_A)) {
-          state = 1;
-        }
-        if (gb.buttons.pressed(BUTTON_MENU)) {
-         resetGame();
-       }
+        if (gb.buttons.pressed(BUTTON_A))  gamestatus = Running;
        break;
   }
 }
