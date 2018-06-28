@@ -3,18 +3,23 @@
 
 #define NUM_HIGHSCORE 5
 #define NAMELENGTH 12
+#define NB_LEVEL 3
+#define LightSides 0
+#define LightPaddle 0
+#define LightBrick 0
+#define paddleDefaulSize 10
 
-#define COLUMNS        16   // Columns of bricks
-#define ROWS           10   // Rows of bricks
-#define paddlewidth    10
-#define paddleheight   2
-#define paddlespeed    2
-#define BallSize       3
+#define COLUMNS        10   // Columns of bricks
+#define ROWS           5    // Rows of bricks
+#define paddlewidthmin    4
+#define paddlewidthmax    30
+
+#define MaxXSpeed      1.7
+
 #define Ytop           12
-#define BrickWidth     5
-#define BrickHeight    2
+#define BrickWidth     8
+#define BrickHeight    4
 #define NbPointsBrick  10
-
 
 // Game states
 #define Titlescreen   0
@@ -31,10 +36,19 @@ extern void Brick();
 extern int16_t score;
 extern const byte font5x7[];
 extern int highscore[NUM_HIGHSCORE];
+extern int8_t level_brick[NB_LEVEL][ROWS * COLUMNS + 1];
 extern bool drawNewHighscore(unsigned int newscore);
-extern Image PaddlePicture;
 extern Image BallPicture;
 extern Image StartScreen;
+extern Image Paddle_cg;
+extern Image Paddle_cd;
+extern Image Ball2;
+extern Image Ball3;
+extern Image Ball4;
+extern Image Ball5;
+extern Image BR[12];
+extern int8_t defaultBonusBrick;
+
 extern const Gamebuino_Meta::Sound_FX LoseLife[];
 
 #endif _DECLARATIONS_H_

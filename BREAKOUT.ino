@@ -7,14 +7,8 @@
 #include "declarations.h"
 
 int8_t gamestatus = Titlescreen;          // gamestatus the game for tilescreen
-float moveX;               // Horizontal movement of ball
-float moveY;               // Vertical movement of ball
-float ballX;               // Ball horizontal position
-float ballY;               // Ball vertical position
-boolean Free;              // True if the ball is free of the paddle
-int8_t xPaddle;            // Horizontal position of the paddle
-int8_t YPaddle;            // Vertical position of the paddle
 boolean isHit[ROWS][COLUMNS];//Array of gamestatuss of the bricks (hit or not)
+int8_t type_brick[ROWS][COLUMNS];//Array of type of the bricks of the level (color / bonus)
 boolean bounced = false;   // Used to fix double bounce glitch
 int8_t lives;              // Amount of lives
 int8_t level;              // Current level
@@ -26,6 +20,15 @@ int8_t midPaddle;
 uint8_t red;
 uint8_t green;
 uint8_t blue;
+float anim_start_menu;
+int   dir_anim_menu;
+int8_t defaultBonusBrick;
+
+struct s_balle{float x; float y; float moveX; float moveY; boolean Free; float pas; int BSize;};
+struct s_paddle{int px; int py; int pwidth; int pheight; int pspeed;};
+
+s_balle balle;
+s_paddle paddle;
 
 const Gamebuino_Meta::Sound_FX LoseLife[] = {
   {Gamebuino_Meta::Sound_FX_Wave::NOISE,0,184,0,-19,96,11},
@@ -33,25 +36,36 @@ const Gamebuino_Meta::Sound_FX LoseLife[] = {
 
 void Paddle() {
   SerialUSB.println("Do Paddle");
-  if (xPaddle < WIDTH - paddlewidth) if (gb.buttons.repeat(BUTTON_RIGHT,0)) xPaddle = xPaddle + paddlespeed;
-  if (xPaddle > 0) if (gb.buttons.repeat(BUTTON_LEFT,0)) xPaddle = xPaddle - paddlespeed;
-  if (xPaddle < 1) xPaddle = 0;
-  if (xPaddle > WIDTH - paddlewidth) xPaddle = WIDTH - paddlewidth;
+  if (paddle.px < WIDTH - paddle.pwidth) if (gb.buttons.repeat(BUTTON_RIGHT,0)) paddle.px = paddle.px + paddle.pspeed;
+  if (paddle.px > 0) if (gb.buttons.repeat(BUTTON_LEFT,0)) paddle.px = paddle.px - paddle.pspeed;
+  if (paddle.px < 1) paddle.px = 0;
+  if (paddle.px > WIDTH - paddle.pwidth) paddle.px = WIDTH - paddle.pwidth;
+  if (paddle.pwidth > paddlewidthmin) {
+  gb.display.setColor(WHITE);
+  gb.display.drawLine( paddle.px+2 , paddle.py , paddle.px + paddle.pwidth - 2 , paddle.py );
   gb.display.setColor(GRAY);
-  // gb.display.drawRect(xPaddle, YPaddle, paddlewidth, YPaddle + paddleheight -1);
-  gb.display.drawImage(xPaddle, YPaddle, PaddlePicture);
+  gb.display.drawLine( paddle.px+2 , paddle.py + 1 , paddle.px + paddle.pwidth - 2 , paddle.py +1 );
+  }
+  gb.display.drawImage(paddle.px, paddle.py, Paddle_cg);
+  gb.display.drawImage(paddle.px+paddle.pwidth-2, paddle.py, Paddle_cd);
 }
 
 
 void resetlevel() {
   SerialUSB.println("Do resetlevel");
-  xPaddle = 50;
+  paddle.pwidth = paddleDefaulSize;
+  paddle.px = (WIDTH - paddle.pwidth)/2;
+  midPaddle = ((paddle.pwidth - (balle.BSize/2))/2);
   brickCount = 0;
-  Free = false;
-  ballY = 60;
+  balle.Free = false;
+  balle.y = paddle.py - balle.BSize;
+  balle.BSize = 3;
+  defaultBonusBrick = level_brick[level-1][50] ;
   for (int8_t row = 0; row < ROWS; row++)
-    for (int8_t column = 0; column < COLUMNS; column++)
+    for (int8_t column = 0; column < COLUMNS; column++) {
       isHit[row][column] = false;
+      type_brick[row][column] = level_brick[level-1][row * COLUMNS + column];
+    }
 }
 
 
@@ -61,7 +75,10 @@ void newgame() {
   lives = 3;
   score = 0;
   resetlevel();
+  balle.BSize = 3;
   gamestatus = Running;
+  paddle.pheight = 2;
+  paddle.pspeed = 3;
 }
 
 
@@ -85,6 +102,7 @@ void ShowInfos() {
   if (brickCount == ROWS * COLUMNS)  {
     resetlevel();
     level = level + 1;
+    if (level > NB_LEVEL) level = 1;
   }
   if (lives <= 0) {
     delay(500);
@@ -103,8 +121,9 @@ void setup() {
   gb.sound.tone(1318, 400);
   WIDTH = gb.display.width();
   HEIGHT = gb.display.height();
-  YPaddle = 62;
-  midPaddle = ((paddlewidth - (BallSize/2))/2);
+  paddle.py = 62;
+  anim_start_menu = 3; 
+  dir_anim_menu = -1;
   initHighscore();
 }
 
@@ -116,6 +135,12 @@ void loop() {
   switch (gamestatus) {
     case 0: // Titlescreen
         gb.display.drawImage(0, 0, StartScreen);
+        anim_start_menu = anim_start_menu + dir_anim_menu * 0.10;
+        if (anim_start_menu < -0.25) dir_anim_menu = 1;
+        if (anim_start_menu > 3.25) dir_anim_menu = -1; 
+        gb.lights.drawPixel(0, anim_start_menu, YELLOW);gb.lights.drawPixel(1, anim_start_menu, YELLOW);
+        delay(15);
+        gb.lights.fill(BLACK);
         if (gb.buttons.pressed(BUTTON_A) || gb.buttons.pressed(BUTTON_B)) newgame();
         break;
 
@@ -124,6 +149,7 @@ void loop() {
           Ball();
           Brick();
           ShowInfos();
+          gb.lights.fill(BLACK);
           if (gb.buttons.pressed(BUTTON_MENU) )  gamestatus = Pause;
           break;
 
@@ -131,7 +157,8 @@ void loop() {
         saveHighscore(score);
         break;
 
-    case 3: // Restart    
+    case 3: // Restart 
+        anim_start_menu = 3; dir_anim_menu = -1;  
         gamestatus = Titlescreen;
         break;
 
