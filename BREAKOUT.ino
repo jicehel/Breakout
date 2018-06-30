@@ -9,8 +9,8 @@
 int8_t gamestatus = Titlescreen;          // gamestatus the game for tilescreen
 boolean isHit[ROWS][COLUMNS];//Array of gamestatuss of the bricks (hit or not)
 int8_t type_brick[ROWS][COLUMNS];//Array of type of the bricks of the level (color / bonus)
-boolean bounced = false;   // Used to fix double bounce glitch
 int8_t lives;              // Amount of lives
+boolean bounced;           // Try to avoid multi bounces
 int8_t level;              // Current level
 int16_t score;             // Score for the game
 int16_t brickCount;        // Amount of bricks hit
@@ -23,6 +23,7 @@ uint8_t blue;
 float anim_start_menu;
 int   dir_anim_menu;
 int8_t defaultBonusBrick;
+int8_t Nb_bricks;
 
 struct s_balle{float x; float y; float moveX; float moveY; boolean Free; float pas; int BSize;};
 struct s_paddle{int px; int py; int pwidth; int pheight; int pspeed;};
@@ -57,14 +58,21 @@ void resetlevel() {
   paddle.px = (WIDTH - paddle.pwidth)/2;
   midPaddle = ((paddle.pwidth - (balle.BSize/2))/2);
   brickCount = 0;
+  Nb_bricks = 0;
+  bounced = false;
   balle.Free = false;
   balle.y = paddle.py - balle.BSize;
   balle.BSize = 3;
   defaultBonusBrick = level_brick[level-1][50] ;
   for (int8_t row = 0; row < ROWS; row++)
-    for (int8_t column = 0; column < COLUMNS; column++) {
-      isHit[row][column] = false;
+    for (int8_t column = 0; column < COLUMNS; column++) { 
       type_brick[row][column] = level_brick[level-1][row * COLUMNS + column];
+      if (type_brick[row][column] > 1) {
+         Nb_bricks++;
+         isHit[row][column] = false;
+      } else if (type_brick[row][column] = 1) {
+         isHit[row][column] = false;
+      } else isHit[row][column] = true;
     }
 }
 
@@ -99,9 +107,9 @@ void ShowInfos() {
   gb.display.print("S:");
   gb.display.setColor(YELLOW);
   gb.display.print(score);
-  if (brickCount == ROWS * COLUMNS)  {
-    resetlevel();
+  if (brickCount >= Nb_bricks)  {
     level = level + 1;
+    resetlevel();
     if (level > NB_LEVEL) level = 1;
   }
   if (lives <= 0) {

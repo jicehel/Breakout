@@ -13,7 +13,7 @@ void Ball() {
       delay(15);
     }
     //Lose a life if bottom edge hit
-    if (balle.y > paddle.py - balle.BSize) {
+    if (balle.y > paddle.py - balle.BSize + 0.5*paddle.pheight) {
       // gb.sound.play("LoseALife.wav");
       gb.lights.fill(RED);
       gb.sound.fx(LoseLife);
@@ -40,7 +40,7 @@ void Ball() {
     }
     //Bounce off paddle
     if (((balle.x + balle.BSize) >= paddle.px) && (balle.x <= paddle.px + paddle.pwidth) && ((balle.y + balle.BSize) >= paddle.py) && (balle.y <= paddle.py + paddle.pheight)) {
-      balle.moveY = -balle.moveY;
+      if (balle.moveY > 0) balle.moveY = -balle.moveY;
       balle.moveX = balle.moveX  - (paddle.px + midPaddle - balle.x + random(-1, 1)) / 4; //Applies spin on the ball
       //limit horizontal speed
       if (balle.moveX < -MaxXSpeed) balle.moveX = -MaxXSpeed;
