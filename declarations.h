@@ -3,7 +3,7 @@
 
 #define NUM_HIGHSCORE     5
 #define NAMELENGTH        12
-#define NB_LEVEL          5
+#define NB_LEVEL          10
 #define LightSides        0
 #define LightPaddle       0
 #define paddleDefaulSize  16
@@ -46,6 +46,7 @@ extern Image Ball3;
 extern Image Ball4;
 extern Image Ball5;
 extern Image BR[12];
+extern Image barre;
 extern int8_t defaultBonusBrick;
 extern int8_t Nb_bricks;
 

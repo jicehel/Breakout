@@ -51,7 +51,6 @@ void Paddle() {
   gb.display.drawImage(paddle.px+paddle.pwidth-2, paddle.py, Paddle_cd);
 }
 
-
 void resetlevel() {
   SerialUSB.println("Do resetlevel");
   paddle.pwidth = paddleDefaulSize;
@@ -70,12 +69,11 @@ void resetlevel() {
       if (type_brick[row][column] > 1) {
          Nb_bricks++;
          isHit[row][column] = false;
-      } else if (type_brick[row][column] = 1) {
+      } else if (type_brick[row][column] == 1) {
          isHit[row][column] = false;
       } else isHit[row][column] = true;
     }
 }
-
 
 void newgame() {
   SerialUSB.println("Do newgame"); 
@@ -89,35 +87,27 @@ void newgame() {
   paddle.pspeed = 3;
 }
 
-
 void ShowInfos() {
   SerialUSB.println("Do ShowInfos");
-  gb.display.setCursor(1, 1);
+  gb.display.setCursor(18, 4);
   gb.display.setColor(WHITE);
-  gb.display.print("Lev:");
-  gb.display.setColor(YELLOW);
   gb.display.print(level);
-  gb.display.setCursor(25, 1);
+  gb.display.setCursor(40, 4);
   gb.display.setColor(WHITE);
-  gb.display.print("Liv:");
-  gb.display.setColor(YELLOW);
   gb.display.print(lives);
-  gb.display.setCursor(48, 1);
+  gb.display.setCursor(64, 4);
   gb.display.setColor(WHITE);
-  gb.display.print("S:");
-  gb.display.setColor(YELLOW);
   gb.display.print(score);
   if (brickCount >= Nb_bricks)  {
     level = level + 1;
-    resetlevel();
     if (level > NB_LEVEL) level = 1;
+    resetlevel();
   }
   if (lives <= 0) {
     delay(500);
     gamestatus = Gameover;
   }
 }
-
 
 void setup() {
   gb.begin();
@@ -135,10 +125,10 @@ void setup() {
   initHighscore();
 }
 
-
 void loop() {
   if (!gb.update()) return;
   gb.display.clear();
+  gb.display.drawImage(0,0,barre);
   SerialUSB.print(gamestatus);
   switch (gamestatus) {
     case 0: // Titlescreen
