@@ -1,11 +1,11 @@
 void Brick() {
   //Bounce off Bricks
-  SerialUSB.print("Do Brick");
+  // SerialUSB.print("Do Brick");
   for (int8_t row = 0; row < ROWS; row++) {
-    SerialUSB.println(" ");
-    SerialUSB.print("Row "); SerialUSB.print(row);
+    // SerialUSB.println(" ");
+    // SerialUSB.print("Row "); SerialUSB.print(row);
     for (int8_t column = 0; column < COLUMNS; column++) {
-      SerialUSB.print(type_brick[row][column]);
+      // SerialUSB.print(type_brick[row][column]);SerialUSB.print("|");
       if (!isHit[row][column] ) {
         // Manage brick and ball collision
         if (type_brick[row][column] > 0) {
@@ -43,6 +43,10 @@ void Collision(int8_t r,int8_t c ) {
   if (type_brick[r][c] > 1) {
          brickCount++;
          score = score + NbPointsBrick;
+         SerialUSB.print("Collision => type_brick[r][c]:");
+         SerialUSB.println(type_brick[r][c]);
+         if(type_brick[r][c] == 11) {gb.sound.fx(SBonus); Add_bonus(type_brick[r][c],BrickWidth * c,((r+1)*BrickHeight  + Ytop));} 
+         if(type_brick[r][c] == 18) {gb.sound.fx(SLostlife); Add_bonus(type_brick[r][c],BrickWidth * c,((r+1)*BrickHeight  + Ytop));}  
          isHit[r][c] = true;
   }
 }
@@ -66,7 +70,7 @@ void X_bounce(int8_t r,int8_t c) {
 }
 
 void Bounce() {
-    delay(15);
+    delay(5);
     bounced = true;
     gb.sound.tone(261, 200);
 }

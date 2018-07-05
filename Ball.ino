@@ -1,5 +1,5 @@
 void Ball() {
-  SerialUSB.println("Do Ball");
+  // SerialUSB.println("Do Ball");
   if (balle.Free) {
     //Move ball
     balle.x = balle.x + balle.moveX;
@@ -40,14 +40,16 @@ void Ball() {
     }
     //Bounce off paddle
     if (((balle.x + balle.BSize) >= paddle.px) && (balle.x <= paddle.px + paddle.pwidth) && ((balle.y + balle.BSize) >= paddle.py) && (balle.y <= paddle.py + paddle.pheight)) {
-      if (balle.moveY > 0) balle.moveY = -balle.moveY;
-      balle.moveX = balle.moveX  - (paddle.px + midPaddle - balle.x + random(-1, 1)) / 4; //Applies spin on the ball
+      if (balle.moveY > 0) {
+        balle.moveY = -balle.moveY;
+        balle.moveX = balle.moveX  - (paddle.px + midPaddle - balle.x + random(-1, 1)) / 4; //Applies spin on the ball
+      }
       //limit horizontal speed
       if (balle.moveX < -MaxXSpeed) balle.moveX = -MaxXSpeed;
       if (balle.moveX > MaxXSpeed)  balle.moveX =  MaxXSpeed;
       gb.sound.tone(200, 200);
       if (LightSides) { gb.lights.drawPixel(0, 3, YELLOW);gb.lights.drawPixel(1, 3, YELLOW); }
-      delay(20);
+      delay(2);
     } // end bounce off paddle
     //Reset Bounce
     bounced = false;

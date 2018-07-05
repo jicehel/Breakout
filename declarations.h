@@ -14,11 +14,15 @@
 #define paddlewidthmax    30
 
 #define MaxXSpeed         1.4
+#define BonusSpeed        2
+#define BonusWidth        7
+#define BonusHeight       4
 
 #define Ytop              12
 #define BrickWidth        8
 #define BrickHeight       4
 #define NbPointsBrick     10
+#define Demultiplicateur  3
 
 // Game states
 #define Titlescreen       0
@@ -33,6 +37,12 @@ extern void saveHighscore(unsigned int test_score);
 extern void Ball();
 extern void Brick();
 extern void draw_brick(int8_t BrickType, int8_t XB, int8_t YB);
+extern void Bonus();
+extern void Draw_Bonus(int i);
+extern void Test_collision_Bonus(int i) ;
+extern void Clear_bonus(int i);
+extern void Add_bonus(int Type,int BX,int BY);
+
 extern int16_t score;
 extern const byte font5x7[];
 extern int highscore[NUM_HIGHSCORE];
@@ -47,9 +57,9 @@ extern Image Ball4;
 extern Image Ball5;
 extern Image BR[12];
 extern Image barre;
+extern Image Bonus_vie;
+extern Image Malus_vie;
 extern int8_t defaultBonusBrick;
 extern int8_t Nb_bricks;
-
-extern const Gamebuino_Meta::Sound_FX LoseLife[];
 
 #endif _DECLARATIONS_H_

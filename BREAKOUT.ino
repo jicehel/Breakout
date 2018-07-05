@@ -24,19 +24,30 @@ float anim_start_menu;
 int   dir_anim_menu;
 int8_t defaultBonusBrick;
 int8_t Nb_bricks;
+int8_t Nb_bonus;
 
 struct s_balle{float x; float y; float moveX; float moveY; boolean Free; float pas; int BSize;};
 struct s_paddle{int px; int py; int pwidth; int pheight; int pspeed;};
+struct s_bonus{int bx; int by;int btype;};
+
+const Gamebuino_Meta::Sound_FX SBonus[] = {
+  {Gamebuino_Meta::Sound_FX_Wave::SQUARE,0,150,-6,-44,53,4},
+};
+
+const Gamebuino_Meta::Sound_FX SLostlife[] = {
+  {Gamebuino_Meta::Sound_FX_Wave::SQUARE,0,192,-1,49,22,21},
+};
 
 s_balle balle;
 s_paddle paddle;
+s_bonus bonus[20];
 
 const Gamebuino_Meta::Sound_FX LoseLife[] = {
   {Gamebuino_Meta::Sound_FX_Wave::NOISE,0,184,0,-19,96,11},
 };
 
 void Paddle() {
-  SerialUSB.println("Do Paddle");
+  // SerialUSB.println("Do Paddle");
   if (paddle.px < WIDTH - paddle.pwidth) if (gb.buttons.repeat(BUTTON_RIGHT,0)) paddle.px = paddle.px + paddle.pspeed;
   if (paddle.px > 0) if (gb.buttons.repeat(BUTTON_LEFT,0)) paddle.px = paddle.px - paddle.pspeed;
   if (paddle.px < 1) paddle.px = 0;
@@ -62,6 +73,7 @@ void resetlevel() {
   balle.Free = false;
   balle.y = paddle.py - balle.BSize;
   balle.BSize = 3;
+  Nb_bonus = 0; 
   defaultBonusBrick = level_brick[level-1][50] ;
   for (int8_t row = 0; row < ROWS; row++)
     for (int8_t column = 0; column < COLUMNS; column++) { 
@@ -76,7 +88,7 @@ void resetlevel() {
 }
 
 void newgame() {
-  SerialUSB.println("Do newgame"); 
+  // SerialUSB.println("Do newgame"); 
   level = 1;
   lives = 3;
   score = 0;
@@ -88,7 +100,7 @@ void newgame() {
 }
 
 void ShowInfos() {
-  SerialUSB.println("Do ShowInfos");
+  // SerialUSB.println("Do ShowInfos");
   gb.display.setCursor(18, 4);
   gb.display.setColor(WHITE);
   gb.display.print(level);
@@ -111,7 +123,7 @@ void ShowInfos() {
 
 void setup() {
   gb.begin();
-  gb.setFrameRate(40);
+  gb.setFrameRate(60);
   gb.pickRandomSeed();
   SerialUSB.println("Do setup");
   gb.sound.tone(987, 160);
@@ -129,7 +141,7 @@ void loop() {
   if (!gb.update()) return;
   gb.display.clear();
   gb.display.drawImage(0,0,barre);
-  SerialUSB.print(gamestatus);
+  // SerialUSB.print(gamestatus);
   switch (gamestatus) {
     case 0: // Titlescreen
         gb.display.drawImage(0, 0, StartScreen);
@@ -146,6 +158,7 @@ void loop() {
           Paddle();
           Ball();
           Brick();
+          Bonus();
           ShowInfos();
           gb.lights.fill(BLACK);
           if (gb.buttons.pressed(BUTTON_MENU) )  gamestatus = Pause;
