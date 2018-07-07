@@ -7,11 +7,16 @@
 #define LightSides        0
 #define LightPaddle       0
 #define paddleDefaulSize  16
+#define YPaddle           62
 
 #define COLUMNS           10   // Columns of bricks
 #define ROWS              5    // Rows of bricks
 #define paddlewidthmin    4
 #define paddlewidthmax    30
+
+#define ballSizeMini      2
+#define ballSizeMaxi      5
+#define Nb_def_glue       20
 
 #define MaxXSpeed         1.4
 #define BonusSpeed        2
@@ -59,6 +64,15 @@ extern Image BR[12];
 extern Image barre;
 extern Image Bonus_vie;
 extern Image Malus_vie;
+extern Image Balle4Metal;
+extern Image Bonus_paddle;
+extern Image Malus_paddle;
+extern Image Bonus_Glue;
+extern Image Bonus_Glue;
+extern Image Malus_mini_raquette_rouge;
+extern Image MalusBalle_vert;
+extern Image BonusBalle_vert;
+extern Image Bonus_balle_acier;
 extern int8_t defaultBonusBrick;
 extern int8_t Nb_bricks;
 

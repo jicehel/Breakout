@@ -25,6 +25,9 @@ int   dir_anim_menu;
 int8_t defaultBonusBrick;
 int8_t Nb_bricks;
 int8_t Nb_bonus;
+boolean glue;
+int8_t Nb_glue;
+boolean metal;
 
 struct s_balle{float x; float y; float moveX; float moveY; boolean Free; float pas; int BSize;};
 struct s_paddle{int px; int py; int pwidth; int pheight; int pspeed;};
@@ -53,7 +56,11 @@ void Paddle() {
   if (paddle.px < 1) paddle.px = 0;
   if (paddle.px > WIDTH - paddle.pwidth) paddle.px = WIDTH - paddle.pwidth;
   if (paddle.pwidth > paddlewidthmin) {
-  gb.display.setColor(WHITE);
+  if (glue == 0) {
+     gb.display.setColor(WHITE);
+  } else {
+     gb.display.setColor(LIGHTGREEN);
+  }
   gb.display.drawLine( paddle.px+2 , paddle.py , paddle.px + paddle.pwidth - 2 , paddle.py );
   gb.display.setColor(GRAY);
   gb.display.drawLine( paddle.px+2 , paddle.py + 1 , paddle.px + paddle.pwidth - 2 , paddle.py +1 );
@@ -74,6 +81,8 @@ void resetlevel() {
   balle.y = paddle.py - balle.BSize;
   balle.BSize = 3;
   Nb_bonus = 0; 
+  glue =false;
+  metal = false;
   defaultBonusBrick = level_brick[level-1][50] ;
   for (int8_t row = 0; row < ROWS; row++)
     for (int8_t column = 0; column < COLUMNS; column++) { 
@@ -131,7 +140,7 @@ void setup() {
   gb.sound.tone(1318, 400);
   WIDTH = gb.display.width();
   HEIGHT = gb.display.height();
-  paddle.py = 62;
+  paddle.py = YPaddle;
   anim_start_menu = 3; 
   dir_anim_menu = -1;
   initHighscore();

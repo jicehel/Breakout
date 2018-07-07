@@ -11,12 +11,12 @@ void Brick() {
         if (type_brick[row][column] > 0) {
           draw_brick(type_brick[row][column], BrickWidth * column, BrickHeight * row + Ytop);
           if (balle.y <= (BrickHeight * (ROWS + 1) + Ytop)) {
-            
+             if (metal==false) {
              // Test vertical collision
               if (balle.moveY > 0) {
                  if (balle.y <= (BrickHeight * (row+1)  + Ytop - balle.BSize) && (balle.y >= (BrickHeight * row  + Ytop - balle.BSize) && (balle.x > (BrickWidth * column - 0.5*balle.BSize)) && (balle.x  < (BrickWidth * (column + 1) - 0.5 *balle.BSize))))  Y_bounce(row,column); 
               } else if (balle.y <= (BrickHeight * (row + 1) + Ytop ) && balle.y >= (BrickHeight * row  + Ytop )  && (balle.x > (BrickWidth * column - 0.5*balle.BSize)) && (balle.x  < (BrickWidth * (column + 1) - 0.5 *balle.BSize)))   Y_bounce(row,column);
-              
+             } // If ball is metal, don't bounce: the ball go through all !! 
               /* //Test hoizontal collision
               else if (balle.x <= (BrickWidth * (column + 1) - balle.moveX - 0.5*balle.BSize+1)) {
                 if (balle.moveX < 0) X_bounce(row,column);
@@ -45,8 +45,15 @@ void Collision(int8_t r,int8_t c ) {
          score = score + NbPointsBrick;
          SerialUSB.print("Collision => type_brick[r][c]:");
          SerialUSB.println(type_brick[r][c]);
-         if(type_brick[r][c] == 11) {gb.sound.fx(SBonus); Add_bonus(type_brick[r][c],BrickWidth * c,((r+1)*BrickHeight  + Ytop));} 
-         if(type_brick[r][c] == 18) {gb.sound.fx(SLostlife); Add_bonus(type_brick[r][c],BrickWidth * c,((r+1)*BrickHeight  + Ytop));}  
+         // Manage bonus / malus add
+         if (type_brick[r][c] == 11 || type_brick[r][c] == 12 || type_brick[r][c] == 14 || type_brick[r][c] == 20 || type_brick[r][c] == 21 ) {
+            gb.sound.fx(SBonus); 
+            Add_bonus(type_brick[r][c],BrickWidth * c,((r+1)*BrickHeight  + Ytop));
+         } else if (type_brick[r][c] == 13 || type_brick[r][c] == 17 || type_brick[r][c] == 18 || type_brick[r][c] == 19 ) {
+            gb.sound.fx(SLostlife); 
+            Add_bonus(18,BrickWidth * c,((r+1)*BrickHeight  + Ytop));
+         } // end Switch
+        
          isHit[r][c] = true;
   }
 }
